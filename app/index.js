@@ -154,6 +154,13 @@ export default function App() {
               <Text style={styles.heroTagline}>
                 Making education fun, engaging, and trackable
               </Text>
+                          <TouchableOpacity 
+            style={styles.ctaBtn} 
+            activeOpacity={0.92}
+            onPress={() => Linking.openURL("https://team1-mathproject.netlify.app/")}
+            >
+              <Text style={styles.ctaBtnText}>Try the Demo Now</Text>
+            </TouchableOpacity>
             </View>
             <Image
               source={{
@@ -291,7 +298,11 @@ export default function App() {
             </Text>
 
             {/* New: CTA button uses same header pill theme */}
-            <TouchableOpacity style={styles.ctaBtn} activeOpacity={0.92}>
+            <TouchableOpacity 
+            style={styles.ctaBtn} 
+            activeOpacity={0.92}
+            onPress={() => Linking.openURL("https://team1-mathproject.netlify.app/")}
+            >
               <Text style={styles.ctaBtnText}>Try the Demo Now</Text>
             </TouchableOpacity>
           </View>
@@ -548,6 +559,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.35,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 0 },
+    marginTop: "30px"
   },
   ctaBtnText: { color: "#FFFFFF", fontSize: 16, fontWeight: "800" },
 });
