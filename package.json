@@ -8,6 +8,10 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "build": "expo export --platform web",
+    "clean": "rm -rf dist .expo",
+    "preview": "npx http-server ./dist -p 3000 -c-1",
+
     "lint": "expo lint"
   },
   "dependencies": {
