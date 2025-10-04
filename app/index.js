@@ -35,10 +35,16 @@ export default function App() {
 
   const scrollRef = useRef(null);
   const sectionRefs = useRef({});
-  const [active, setActive] = useState("problem");
+  const [active, setActive] = useState("hero");
 
   const scrollTo = (key) => {
     setActive(key);
+    
+    if (key === "hero") {
+      scrollRef.current?.scrollTo?.({ y: 0, animated: true });
+      return;
+    }
+    
     if (sectionRefs.current[key]) {
       sectionRefs.current[key].measureLayout(
         scrollRef.current,
@@ -56,13 +62,14 @@ export default function App() {
   const onScroll = (e) => {
     const y = e.nativeEvent.contentOffset.y;
     const pad = 220;
-    let current = "problem";
+    let current = "hero";
     
     // Simple threshold-based detection
     if (y >= height * 2.5) current = "demo";
     else if (y >= height * 1.8) current = "team";
     else if (y >= height * 0.9) current = "solution";
-    else current = "problem";
+    else if (y >= height * 0.3) current = "problem";
+    else current = "hero";
     
     if (current !== active) setActive(current);
   };
@@ -122,16 +129,19 @@ export default function App() {
           colors={["rgba(10,13,31,0.85)", "rgba(10,13,31,0.65)"]}
           style={styles.header}
         >
-          <Image
-            source={{
-              uri: "https://companieslogo.com/img/orig/ACN_BIG.D-871a76ce.png?t=1720244490",
-            }}
-            style={styles.logo}
-          />
+          <TouchableOpacity onPress={() => scrollTo("hero")} activeOpacity={0.8}>
+            <Image
+              source={{
+                uri: "https://companieslogo.com/img/orig/ACN_BIG.D-871a76ce.png?t=1720244490",
+              }}
+              style={styles.logo}
+            />
+          </TouchableOpacity>
 
           <View style={styles.navWrap}>
             <View style={styles.navPill}>
               {[
+                { label: "HOME", key: "hero" },
                 { label: "PROBLEM", key: "problem" },
                 { label: "SOLUTION", key: "solution" },
                 { label: "TEAM", key: "team" },
@@ -219,7 +229,7 @@ export default function App() {
           ref={(ref) => { sectionRefs.current.problem = ref; }}
           style={[styles.band, styles.bandAlt, { minHeight: SECTION_MIN }]}
         >
-          <View style={[styles.container, isMobile && styles.containerMobile]}>
+          <View style={styles.container}>
             <View style={[styles.row, isMobile && styles.rowMobile]}>
               <View style={[styles.colText, isMobile && styles.colTextMobile]}>
                 <Text style={[styles.h2, isMobile && { fontSize: 28 }]}>
@@ -232,11 +242,13 @@ export default function App() {
                   progress.
                 </Text>
               </View>
-              <View style={[styles.figureCard, isMobile && styles.figureCardMobile]}>
-                <Image
-                  source={{ uri: "https://images.pexels.com/photos/249360/pexels-photo-249360.jpeg" }}
-                  style={styles.figureImg}
-                />
+              <View style={[styles.colImage, isMobile && styles.colImageMobile]}>
+                <View style={styles.figureCard}>
+                  <Image
+                    source={{ uri: "https://images.pexels.com/photos/249360/pexels-photo-249360.jpeg" }}
+                    style={styles.figureImg}
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -377,11 +389,11 @@ const SquareFeature = ({ title, text, bg }) => (
   <View style={styles.squareCard}>
     <Image
       source={{ uri: bg }}
-      style={StyleSheet.absoluteFill}
+      style={[StyleSheet.absoluteFill, { opacity: 0.15 }]}
       resizeMode="cover"
     />
     <LinearGradient 
-      colors={["rgba(0,0,0,0.10)", "rgba(0,0,0,0.22)"]} 
+      colors={["rgba(0,0,0,0.40)", "rgba(0,0,0,0.60)"]} 
       style={styles.squareInner}
     >
       <Text style={styles.squareTitle}>{title}</Text>
@@ -507,17 +519,23 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: 'center',
     gap: 36,
+    width: '100%',
   },
   rowMobile: {
     flexDirection: 'column',
     gap: 24,
   },
   colText: { 
-    flex: 1,
-    maxWidth: '50%',
+    width: '50%',
   },
   colTextMobile: {
-    maxWidth: '100%',
+    width: '100%',
+  },
+  colImage: {
+    width: '42%',
+  },
+  colImageMobile: {
+    width: '100%',
   },
   h2: { 
     color: COLOR.text, 
@@ -532,8 +550,7 @@ const styles = StyleSheet.create({
   },
 
   figureCard: {
-    flex: 1,
-    maxWidth: '42%',
+    width: '100%',
     backgroundColor: COLOR.card,
     borderRadius: RADIUS,
     borderWidth: 1,
@@ -541,7 +558,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   figureCardMobile: {
-    maxWidth: '100%',
+    width: '100%',
   },
   figureImg: {
     width: "100%",
@@ -599,8 +616,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   teamCard: {
-    width: '31%',
-    minWidth: 320,
+    width: 320,
     backgroundColor: COLOR.card,
     borderRadius: RADIUS + 2,
     padding: 16,
@@ -612,7 +628,6 @@ const styles = StyleSheet.create({
   },
   teamCardMobile: {
     width: '100%',
-    minWidth: 280,
   },
   avatarFrame: {
     width: 80,
