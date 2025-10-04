@@ -1,15 +1,15 @@
-// app/index.js (restyled)
-import React, { useRef, useState } from "react";
+// app/index.js (fixed for web deployment)
+import React, { useRef, useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
   View,
   Image,
-  ImageBackground,
   ScrollView,
   TouchableOpacity,
   Linking,
   useWindowDimensions,
+  Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -31,48 +31,49 @@ const COLOR = {
 
 export default function App() {
   const { width, height } = useWindowDimensions();
-  const isMobile = width < 640; // simple breakpoint
+  const isMobile = width < 640;
 
-  // ---- Anchors for smooth scroll ----
   const scrollRef = useRef(null);
-  const [anchors, setAnchors] = useState({
-    problem: 0,
-    solution: 0,
-    team: 0,
-    demo: 0,
-  });
+  const sectionRefs = useRef({});
   const [active, setActive] = useState("problem");
 
-  const onLayout = (key) => (e) =>
-    setAnchors((p) => ({ ...p, [key]: e.nativeEvent.layout.y }));
-
   const scrollTo = (key) => {
-    setActive(key); // instant visual feedback
-    const y = Math.max((anchors[key] || 0) - HEADER_HEIGHT - 8, 0);
-    scrollRef.current?.scrollTo?.({ y, animated: true });
+    setActive(key);
+    if (sectionRefs.current[key]) {
+      sectionRefs.current[key].measureLayout(
+        scrollRef.current,
+        (x, y) => {
+          scrollRef.current?.scrollTo?.({ 
+            y: Math.max(y - HEADER_HEIGHT - 8, 0), 
+            animated: true 
+          });
+        },
+        () => {}
+      );
+    }
   };
 
-  // Track active section while scrolling
   const onScroll = (e) => {
     const y = e.nativeEvent.contentOffset.y;
     const pad = 220;
     let current = "problem";
-    if (y >= (anchors.demo || 9e9) - pad) current = "demo";
-    else if (y >= (anchors.team || 9e9) - pad) current = "team";
-    else if (y >= (anchors.solution || 9e9) - pad) current = "solution";
+    
+    // Simple threshold-based detection
+    if (y >= height * 2.5) current = "demo";
+    else if (y >= height * 1.8) current = "team";
+    else if (y >= height * 0.9) current = "solution";
     else current = "problem";
+    
     if (current !== active) setActive(current);
   };
 
-  // SECTION sizing: fill the page more
   const SECTION_MIN = Math.max(height * 0.85, isMobile ? 560 : 640);
 
   const TEAM = [
     {
       first: "Besmelh",
       last: "Alshalaan",
-      avatar:
-        "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/Besmelh",
+      avatar: "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/Besmelh",
       linkedin: "https://www.linkedin.com/in/besmelh-alshaalan/",
       email: "besmelh.alshaalan@gmail.com",
     },
@@ -86,8 +87,7 @@ export default function App() {
     {
       first: "Rasheed",
       last: "Alghamdi",
-      avatar:
-        "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/Rasheed",
+      avatar: "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/Rasheed",
       linkedin: "https://www.linkedin.com/in/rasheedmg/",
       email: "rasheedalghamdi1998@gmail.com",
     },
@@ -95,15 +95,13 @@ export default function App() {
       first: "Fai",
       last: "Alradhi",
       avatar: "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/We",
-      linkedin:
-        "https://www.linkedin.com/in/fai-alradhi-caie™-080b66228/",
+      linkedin: "https://www.linkedin.com/in/fai-alradhi-caie™-080b66228/",
       email: "Faialradhi@gmail.com",
     },
     {
       first: "Mohammad",
       last: "Alsarrah",
-      avatar:
-        "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/Mohammed",
+      avatar: "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/Mohammed",
       linkedin: "https://www.linkedin.com/in/mohammed-alsarrah/",
       email: "malsarrah0@gmail.com",
     },
@@ -169,21 +167,24 @@ export default function App() {
         onScroll={onScroll}
       >
         {/* ===== Hero ===== */}
-        <ImageBackground
-          source={{
-            uri: "https://images.unsplash.com/photo-1758685734343-491353d96a81?q=80&w=2400&auto=format&fit=crop",
-          }}
-          resizeMode="cover"
-          style={[styles.heroBand, { minHeight: SECTION_MIN }]}
-          imageStyle={{ opacity: 0.5 }}
-        >
+        <View style={[styles.heroBand, { minHeight: SECTION_MIN }]}>
+          <Image
+            source={{
+              uri: "https://images.unsplash.com/photo-1758685734343-491353d96a81?q=80&w=2400&auto=format&fit=crop",
+            }}
+            style={StyleSheet.absoluteFill}
+            resizeMode="cover"
+            blurRadius={Platform.OS === 'web' ? 0 : undefined}
+          />
           <LinearGradient
             colors={["rgba(10,13,31,0.3)", "rgba(10,13,31,0.75)"]}
             style={StyleSheet.absoluteFill}
           />
           <View style={styles.heroRow}>
             <View style={styles.heroLeft}>
-              <Text style={[styles.heroBrand, isMobile && { fontSize: 44 }]}>EdVenture</Text>
+              <Text style={[styles.heroBrand, isMobile && { fontSize: 44 }]}>
+                EdVenture
+              </Text>
               <Text
                 style={[
                   styles.heroTagline,
@@ -211,118 +212,142 @@ export default function App() {
               </View>
             </View>
           </View>
-        </ImageBackground>
-
-        {/* ===== Problem ===== */}
-        <View onLayout={onLayout("problem")} />
-        <View style={[styles.band, styles.bandAlt, { minHeight: SECTION_MIN }]}>
-          <View style={[styles.row, isMobile && { flexDirection: "column", gap: 20 }]}>
-            <View style={[styles.colText, isMobile && { flexBasis: "100%" }]}>
-              <Text style={[styles.h2, { fontSize: isMobile ? 28 : 32 }]}>Problem Statement</Text>
-              <Text style={[styles.body, { fontSize: isMobile ? 16 : 18 }]}> 
-                Traditional math learning relies heavily on textbooks and lectures, making the
-                subject feel abstract and repetitive. This often leads to low engagement and
-                reduced motivation among students. Teachers also struggle to track individual
-                progress.
-              </Text>
-            </View>
-            <View style={styles.figureCard}>
-              <Image
-                source={{ uri: "https://images.pexels.com/photos/249360/pexels-photo-249360.jpeg" }}
-                style={styles.figureImg}
-              />
-            </View>
-          </View>
         </View>
 
-        {/* ===== Solution ===== */}
-        <View onLayout={onLayout("solution")} />
-        <View style={[styles.band, { minHeight: SECTION_MIN }]}>
-          <View style={[styles.row, { alignItems: "center" }]}>
-            <View style={{ flexBasis: "100%" }}>
-              <Text style={[styles.h2, { marginBottom: 24 }]}>Solution</Text>
-
-              <View style={[styles.solutionSquares, isMobile && styles.solutionSquaresMobile]}>
-                <SquareFeature
-                  title="Fun"
-                  text="Interactive math games powered by gesture and hand‑draw recognition."
-                  bg="https://images.unsplash.com/photo-1557682250-33bd709cbe85?q=80&w=1200&auto=format&fit=crop"
-                />
-                <SquareFeature
-                  title="Engaging"
-                  text="Students draw and gesture to grasp abstract concepts quickly."
-                  bg="https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?q=80&w=1200&auto=format&fit=crop"
-                />
-                <SquareFeature
-                  title="Trackable"
-                  text="Real‑time analytics for teachers; history for students."
-                  bg="https://images.unsplash.com/photo-1545239351-1141bd82e8a6?q=80&w=1200&auto=format&fit=crop"
+        {/* ===== Problem ===== */}
+        <View 
+          ref={(ref) => { sectionRefs.current.problem = ref; }}
+          style={[styles.band, styles.bandAlt, { minHeight: SECTION_MIN }]}
+        >
+          <View style={[styles.container, isMobile && styles.containerMobile]}>
+            <View style={[styles.row, isMobile && styles.rowMobile]}>
+              <View style={[styles.colText, isMobile && styles.colTextMobile]}>
+                <Text style={[styles.h2, isMobile && { fontSize: 28 }]}>
+                  Problem Statement
+                </Text>
+                <Text style={[styles.body, isMobile && { fontSize: 16 }]}>
+                  Traditional math learning relies heavily on textbooks and lectures, making the
+                  subject feel abstract and repetitive. This often leads to low engagement and
+                  reduced motivation among students. Teachers also struggle to track individual
+                  progress.
+                </Text>
+              </View>
+              <View style={[styles.figureCard, isMobile && styles.figureCardMobile]}>
+                <Image
+                  source={{ uri: "https://images.pexels.com/photos/249360/pexels-photo-249360.jpeg" }}
+                  style={styles.figureImg}
                 />
               </View>
             </View>
           </View>
         </View>
 
-        {/* ===== Team ===== */}
-        <View onLayout={onLayout("team")} />
-        <LinearGradient colors={["#12183d", COLOR.bg]} style={[styles.teamBand, { minHeight: SECTION_MIN }]}>
-          <View style={[styles.row, { flexDirection: "column", gap: 16 }]}>
-            <Text style={[styles.h2, { textAlign: "left", marginBottom: 6, fontSize: isMobile ? 28 : 32 }]}>Team Members</Text>
+        {/* ===== Solution ===== */}
+        <View 
+          ref={(ref) => { sectionRefs.current.solution = ref; }}
+          style={[styles.band, { minHeight: SECTION_MIN }]}
+        >
+          <View style={styles.container}>
+            <View style={styles.row}>
+              <View style={{ width: '100%' }}>
+                <Text style={[styles.h2, { marginBottom: 24 }]}>Solution</Text>
 
-            <View style={[styles.teamRowWrap, isMobile && { justifyContent: "center" }]}>
-              {TEAM.map((m, i) => (
-                <View key={i} style={[styles.teamCard, isMobile && { width: "100%", minWidth: undefined }]}>
-                  <LinearGradient
-                    colors={[COLOR.brand, "rgba(123,44,255,0.18)"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.avatarFrame}
-                  >
-                    <Image source={{ uri: m.avatar }} style={styles.teamAvatar} />
-                  </LinearGradient>
-
-                  <View style={styles.teamInfo}>
-                    <Text style={styles.teamOverline}>team member</Text>
-                    <Text style={styles.teamName}>
-                      {m.first} {m.last}
-                    </Text>
-                    <Text style={styles.teamCopy} numberOfLines={3}>
-                      Passionate about building delightful, measurable learning experiences.
-                    </Text>
-                    <View style={styles.teamActions}>
-                      <TouchableOpacity
-                        onPress={() => Linking.openURL(`mailto:${m.email}`)}
-                        style={[styles.chip, styles.chipGhost]}
-                        activeOpacity={0.85}
-                      >
-                        <Text style={styles.chipGhostText}>Email</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => Linking.openURL(m.linkedin)}
-                        style={[styles.chip, styles.chipPrimary]}
-                        activeOpacity={0.9}
-                      >
-                        <Text style={styles.chipPrimaryText}>LinkedIn</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
+                <View style={[styles.solutionSquares, isMobile && styles.solutionSquaresMobile]}>
+                  <SquareFeature
+                    title="Fun"
+                    text="Interactive math games powered by gesture and hand-draw recognition."
+                    bg="https://images.unsplash.com/photo-1557682250-33bd709cbe85?q=80&w=1200&auto=format&fit=crop"
+                  />
+                  <SquareFeature
+                    title="Engaging"
+                    text="Students draw and gesture to grasp abstract concepts quickly."
+                    bg="https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?q=80&w=1200&auto=format&fit=crop"
+                  />
+                  <SquareFeature
+                    title="Trackable"
+                    text="Real-time analytics for teachers; history for students."
+                    bg="https://images.unsplash.com/photo-1545239351-1141bd82e8a6?q=80&w=1200&auto=format&fit=crop"
+                  />
                 </View>
-              ))}
+              </View>
             </View>
           </View>
-        </LinearGradient>
+        </View>
+
+        {/* ===== Team ===== */}
+        <View 
+          ref={(ref) => { sectionRefs.current.team = ref; }}
+          style={{ minHeight: SECTION_MIN }}
+        >
+          <LinearGradient 
+            colors={["#12183d", COLOR.bg]} 
+            style={styles.teamBand}
+          >
+            <View style={styles.container}>
+              <Text style={[styles.h2, { marginBottom: 24, fontSize: isMobile ? 28 : 32 }]}>
+                Team Members
+              </Text>
+
+              <View style={[styles.teamRowWrap, isMobile && styles.teamRowWrapMobile]}>
+                {TEAM.map((m, i) => (
+                  <View key={i} style={[styles.teamCard, isMobile && styles.teamCardMobile]}>
+                    <LinearGradient
+                      colors={[COLOR.brand, "rgba(123,44,255,0.18)"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.avatarFrame}
+                    >
+                      <Image source={{ uri: m.avatar }} style={styles.teamAvatar} />
+                    </LinearGradient>
+
+                    <View style={styles.teamInfo}>
+                      <Text style={styles.teamOverline}>team member</Text>
+                      <Text style={styles.teamName}>
+                        {m.first} {m.last}
+                      </Text>
+                      <Text style={styles.teamCopy} numberOfLines={3}>
+                        Passionate about building delightful, measurable learning experiences.
+                      </Text>
+                      <View style={styles.teamActions}>
+                        <TouchableOpacity
+                          onPress={() => Linking.openURL(`mailto:${m.email}`)}
+                          style={[styles.chip, styles.chipGhost]}
+                          activeOpacity={0.85}
+                        >
+                          <Text style={styles.chipGhostText}>Email</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() => Linking.openURL(m.linkedin)}
+                          style={[styles.chip, styles.chipPrimary]}
+                          activeOpacity={0.9}
+                        >
+                          <Text style={styles.chipPrimaryText}>LinkedIn</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </LinearGradient>
+        </View>
 
         {/* ===== CTA ===== */}
-        <View onLayout={onLayout("demo")} />
-        <View style={[styles.ctaWrap, { minHeight: Math.max(SECTION_MIN * 0.7, 420) }]}>
+        <View 
+          ref={(ref) => { sectionRefs.current.demo = ref; }}
+          style={[styles.ctaWrap, { minHeight: Math.max(SECTION_MIN * 0.7, 420) }]}
+        >
           <View style={styles.ctaCard}>
             <Image
               source={{ uri: "https://images.unsplash.com/photo-1557682250-33bd709cbe85?q=80&w=1600&auto=format&fit=crop" }}
               style={styles.ctaBg}
-              blurRadius={30}
+              blurRadius={Platform.OS === 'web' ? 0 : 30}
             />
-            <LinearGradient colors={["rgba(0,0,0,0.35)", "rgba(0,0,0,0.55)"]} style={styles.ctaShade} />
-            <Text style={styles.ctaTitle}>Experience It Yourself – Try the Demo</Text>
+            <LinearGradient 
+              colors={["rgba(0,0,0,0.35)", "rgba(0,0,0,0.55)"]} 
+              style={styles.ctaShade} 
+            />
+            <Text style={styles.ctaTitle}>Experience It Yourself — Try the Demo</Text>
 
             <View style={styles.ctaRow}>
               <TouchableOpacity
@@ -349,22 +374,35 @@ export default function App() {
 
 /* ---------- helpers ---------- */
 const SquareFeature = ({ title, text, bg }) => (
-  <ImageBackground
-    source={{ uri: bg }}
-    resizeMode="cover"
-    imageStyle={{ opacity: 0.28, borderRadius: RADIUS }}
-    style={styles.squareCard}
-  >
-    <LinearGradient colors={["rgba(0,0,0,0.10)", "rgba(0,0,0,0.22)"]} style={styles.squareInner}>
+  <View style={styles.squareCard}>
+    <Image
+      source={{ uri: bg }}
+      style={StyleSheet.absoluteFill}
+      resizeMode="cover"
+    />
+    <LinearGradient 
+      colors={["rgba(0,0,0,0.10)", "rgba(0,0,0,0.22)"]} 
+      style={styles.squareInner}
+    >
       <Text style={styles.squareTitle}>{title}</Text>
       <Text style={styles.squareText}>{text}</Text>
     </LinearGradient>
-  </ImageBackground>
+  </View>
 );
 
 /* =================== styles =================== */
 const styles = StyleSheet.create({
   page: { flex: 1 },
+
+  container: {
+    maxWidth: MAX_W,
+    width: '100%',
+    alignSelf: 'center',
+    paddingHorizontal: 24,
+  },
+  containerMobile: {
+    paddingHorizontal: 20,
+  },
 
   /* Header */
   headerWrap: {
@@ -414,7 +452,11 @@ const styles = StyleSheet.create({
   pillTextActive: { color: COLOR.text },
 
   /* Hero */
-  heroBand: { paddingBottom: 32, paddingTop: 12 },
+  heroBand: { 
+    paddingBottom: 32, 
+    paddingTop: 12,
+    position: 'relative',
+  },
   heroRow: {
     maxWidth: MAX_W,
     alignSelf: "center",
@@ -455,32 +497,51 @@ const styles = StyleSheet.create({
 
   /* Bands */
   band: {
-    paddingHorizontal: 24,
     paddingVertical: 72,
     justifyContent: "center",
-    flex: 1,
   },
   bandAlt: { backgroundColor: COLOR.bgAlt },
 
   row: {
-    maxWidth: MAX_W,
-    alignSelf: "center",
-    width: "100%",
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: 'center',
     gap: 36,
   },
-  colText: { flexBasis: "50%" },
-  h2: { color: COLOR.text, fontSize: 32, fontWeight: "900", marginBottom: 16 },
-  body: { color: COLOR.body, fontSize: 18, lineHeight: 28 },
+  rowMobile: {
+    flexDirection: 'column',
+    gap: 24,
+  },
+  colText: { 
+    flex: 1,
+    maxWidth: '50%',
+  },
+  colTextMobile: {
+    maxWidth: '100%',
+  },
+  h2: { 
+    color: COLOR.text, 
+    fontSize: 32, 
+    fontWeight: "900", 
+    marginBottom: 16 
+  },
+  body: { 
+    color: COLOR.body, 
+    fontSize: 18, 
+    lineHeight: 28 
+  },
 
   figureCard: {
-    flexBasis: "42%",
+    flex: 1,
+    maxWidth: '42%',
     backgroundColor: COLOR.card,
     borderRadius: RADIUS,
     borderWidth: 1,
     borderColor: COLOR.border,
     overflow: "hidden",
+  },
+  figureCardMobile: {
+    maxWidth: '100%',
   },
   figureImg: {
     width: "100%",
@@ -492,7 +553,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 16,
     justifyContent: "space-between",
-    alignItems: "stretch",
   },
   solutionSquaresMobile: {
     flexDirection: "column",
@@ -525,18 +585,21 @@ const styles = StyleSheet.create({
   },
 
   /* Team */
-  teamBand: { paddingVertical: 40, paddingHorizontal: 20 },
+  teamBand: { 
+    paddingVertical: 60, 
+    paddingHorizontal: 20 
+  },
   teamRowWrap: {
-    maxWidth: MAX_W,
-    alignSelf: "center",
-    width: "100%",
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
     gap: 24,
   },
+  teamRowWrapMobile: {
+    justifyContent: 'center',
+  },
   teamCard: {
-    width: "32%",
+    width: '31%',
     minWidth: 320,
     backgroundColor: COLOR.card,
     borderRadius: RADIUS + 2,
@@ -546,6 +609,10 @@ const styles = StyleSheet.create({
     gap: 16,
     borderWidth: 1,
     borderColor: COLOR.border,
+  },
+  teamCardMobile: {
+    width: '100%',
+    minWidth: 280,
   },
   avatarFrame: {
     width: 80,
@@ -572,24 +639,53 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: 2,
   },
-  teamName: { color: COLOR.text, fontSize: 19, fontWeight: "800", marginBottom: 6 },
-  teamCopy: { color: COLOR.body, fontSize: 13.5, lineHeight: 20 },
-  teamActions: { flexDirection: "row", gap: 10, marginTop: 12 },
-  chip: { paddingVertical: 9, paddingHorizontal: 14, borderRadius: 999 },
+  teamName: { 
+    color: COLOR.text, 
+    fontSize: 19, 
+    fontWeight: "800", 
+    marginBottom: 6 
+  },
+  teamCopy: { 
+    color: COLOR.body, 
+    fontSize: 13.5, 
+    lineHeight: 20 
+  },
+  teamActions: { 
+    flexDirection: "row", 
+    gap: 10, 
+    marginTop: 12 
+  },
+  chip: { 
+    paddingVertical: 9, 
+    paddingHorizontal: 14, 
+    borderRadius: 999 
+  },
   chipGhost: {
     backgroundColor: "transparent",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.25)",
   },
-  chipGhostText: { color: "#E6E8F2", fontSize: 13, fontWeight: "700" },
+  chipGhostText: { 
+    color: "#E6E8F2", 
+    fontSize: 13, 
+    fontWeight: "700" 
+  },
   chipPrimary: { backgroundColor: "#0a66c2" },
-  chipPrimaryText: { color: COLOR.text, fontSize: 13, fontWeight: "700" },
+  chipPrimaryText: { 
+    color: COLOR.text, 
+    fontSize: 13, 
+    fontWeight: "700" 
+  },
 
   /* CTA */
-  ctaWrap: { paddingHorizontal: 20, paddingVertical: 32 },
+  ctaWrap: { 
+    paddingHorizontal: 20, 
+    paddingVertical: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   ctaCard: {
     maxWidth: MAX_W,
-    alignSelf: "center",
     width: "100%",
     backgroundColor: "#0E1016",
     borderRadius: RADIUS + 8,
@@ -601,9 +697,28 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLOR.border,
   },
-  ctaBg: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0, opacity: 0.9 },
-  ctaShade: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0 },
-  ctaTitle: { color: COLOR.text, fontSize: 30, fontWeight: "900", textAlign: "center", marginBottom: 22 },
+  ctaBg: { 
+    position: "absolute", 
+    left: 0, 
+    right: 0, 
+    top: 0, 
+    bottom: 0, 
+    opacity: 0.9 
+  },
+  ctaShade: { 
+    position: "absolute", 
+    left: 0, 
+    right: 0, 
+    top: 0, 
+    bottom: 0 
+  },
+  ctaTitle: { 
+    color: COLOR.text, 
+    fontSize: 30, 
+    fontWeight: "900", 
+    textAlign: "center", 
+    marginBottom: 22 
+  },
 
   ctaBtn: {
     paddingVertical: 12,
@@ -619,7 +734,11 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 0 },
   },
-  ctaBtnText: { color: COLOR.text, fontSize: 16, fontWeight: "800" },
+  ctaBtnText: { 
+    color: COLOR.text, 
+    fontSize: 16, 
+    fontWeight: "800" 
+  },
   ctaBtnGhost: {
     paddingVertical: 12,
     paddingHorizontal: 22,
@@ -630,5 +749,9 @@ const styles = StyleSheet.create({
     borderColor: COLOR.border,
     backgroundColor: "transparent",
   },
-  ctaGhostText: { color: "#E6E8F2", fontSize: 15, fontWeight: "800" },
+  ctaGhostText: { 
+    color: "#E6E8F2", 
+    fontSize: 15, 
+    fontWeight: "800" 
+  },
 });
