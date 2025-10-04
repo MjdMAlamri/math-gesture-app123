@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
   heroRow: {
     maxWidth: MAX_W,
     alignSelf: "center",
-    width: "100",
+    width: "100%",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
