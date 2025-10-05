@@ -1,17 +1,17 @@
 // app/index.js (fixed for web deployment)
-import React, { useRef, useState, useEffect } from "react";
+import { LinearGradient } from "expo-linear-gradient";
+import React, { useRef, useState } from "react";
 import {
+  Image,
+  Linking,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
-  View,
-  Image,
-  ScrollView,
   TouchableOpacity,
-  Linking,
   useWindowDimensions,
-  Platform,
+  View,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 
 // ===== Theme =====
 const HEADER_HEIGHT = 72;
@@ -83,6 +83,7 @@ export default function App() {
       avatar: "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/Besmelh",
       linkedin: "https://www.linkedin.com/in/besmelh-alshaalan/",
       email: "besmelh.alshaalan@gmail.com",
+      desc: "Software developer passionate about creating interactive, visually engaging experiences across web, game, and XR platforms—blending technical skill with creative design to build intuitive, meaningful products."
     },
     {
       first: "Shaykha",
@@ -90,6 +91,7 @@ export default function App() {
       avatar: "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/We",
       linkedin: "https://www.linkedin.com/in/shaykha-almaani/",
       email: "shaykhah.abdullah.a@gmail.com",
+      desc: "Project coordinator ensuring seamless teamwork and high-impact outcomes."
     },
     {
       first: "Rasheed",
@@ -97,6 +99,7 @@ export default function App() {
       avatar: "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/Rasheed",
       linkedin: "https://www.linkedin.com/in/rasheedmg/",
       email: "rasheedalghamdi1998@gmail.com",
+      desc: "Computer Science graduate from KFUPM with a 3.6/4 major GPA. Passionate about technology and Artificial Intelligence. Possessing a diverse skillset with a strong portfolio of projects including Unity, Python, and AI, I am eager to contribute my knowledge to a dynamic organization and grow as a professional. Seeking to make a meaningful impact in the field of computer science by joining a collaborative team to help me reach my potential. Fluent in Arabic, English, and in computers."
     },
     {
       first: "Fai",
@@ -104,6 +107,7 @@ export default function App() {
       avatar: "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/We",
       linkedin: "https://www.linkedin.com/in/fai-alradhi-caie™-080b66228/",
       email: "Faialradhi@gmail.com",
+      desc: "Passionate about creating inclusive tech and overcoming challenges."
     },
     {
       first: "Mohammad",
@@ -111,6 +115,7 @@ export default function App() {
       avatar: "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/Mohammed",
       linkedin: "https://www.linkedin.com/in/mohammed-alsarrah/",
       email: "malsarrah0@gmail.com",
+      desc: "Industrial Engineering graduate and Certified Associate in Project Management (CAPM®️), also holding a Microsoft Azure Data Fundamentals certification. He is part of Accenture’s Graduate Development Program with a focus on Data & AI. His experience includes internships at PwC Middle East in Deals Strategy & Operations and at Muqassa (Securities Clearing Center Company, Tadawul Group), where he worked on strategic planning, financial analysis, and process improvement. He also applied AI/ML forecasting models in a graduation project with the Ministry of Health, combining engineering, data, and business insights."
     },
     {
       first: "Mjd",
@@ -118,6 +123,7 @@ export default function App() {
       avatar: "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/We",
       linkedin: "https://www.linkedin.com/in/mjd-alamri-pnu/",
       email: "mjdmalamri@gmail.com",
+      desc: "Computer Science graduate with ITIL® certification and experience in data analytics, governance, AI applications, and IT operations. Hands-on expertise in incident management, root cause analysis (RCA), Exchange Admin Center, SQL, Power BI, and UI/UX. Recognized for problem-solving, cross-functional collaboration, and time management, with proven leadership skills and a continuous drive to learn and contribute."
     },
   ];
 
@@ -212,13 +218,6 @@ export default function App() {
                 >
                   <Text style={styles.ctaBtnText}>Try the Demo Now</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.ctaBtnGhost, isMobile && { minWidth: 160 }]}
-                  activeOpacity={0.92}
-                  onPress={() => scrollTo("solution")}
-                >
-                  <Text style={styles.ctaGhostText}>See How It Works</Text>
-                </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -233,7 +232,7 @@ export default function App() {
             <View style={[styles.row, isMobile && styles.rowMobile]}>
               <View style={[styles.colText, isMobile && styles.colTextMobile]}>
                 <Text style={[styles.h2, isMobile && { fontSize: 28 }]}>
-                  Problem Statement
+                The Struggle with Traditional Learning
                 </Text>
                 <Text style={[styles.body, isMobile && { fontSize: 16 }]}>
                   Traditional math learning relies heavily on textbooks and lectures, making the
@@ -262,23 +261,23 @@ export default function App() {
           <View style={styles.container}>
             <View style={styles.row}>
               <View style={{ width: '100%' }}>
-                <Text style={[styles.h2, { marginBottom: 24 }]}>Solution</Text>
+                <Text style={[styles.h2, { marginBottom: 24 }]}>The EdVenture Way</Text>
 
                 <View style={[styles.solutionSquares, isMobile && styles.solutionSquaresMobile]}>
                   <SquareFeature
                     title="Fun"
                     text="Interactive math games powered by gesture and hand-draw recognition."
-                    bg="https://images.unsplash.com/photo-1557682250-33bd709cbe85?q=80&w=1200&auto=format&fit=crop"
+                    bg="https://images.pexels.com/photos/1019470/abacus-mathematics-addition-subtraction-1019470.jpeg"
                   />
                   <SquareFeature
                     title="Engaging"
                     text="Students draw and gesture to grasp abstract concepts quickly."
-                    bg="https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?q=80&w=1200&auto=format&fit=crop"
+                    bg="https://images.pexels.com/photos/7692467/pexels-photo-7692467.jpeg"
                   />
                   <SquareFeature
                     title="Trackable"
                     text="Real-time analytics for teachers; history for students."
-                    bg="https://images.unsplash.com/photo-1545239351-1141bd82e8a6?q=80&w=1200&auto=format&fit=crop"
+                    bg="https://images.pexels.com/photos/106344/pexels-photo-106344.jpeg"
                   />
                 </View>
               </View>
@@ -318,8 +317,9 @@ export default function App() {
                         {m.first} {m.last}
                       </Text>
                       <Text style={styles.teamCopy} numberOfLines={3}>
-                        Passionate about building delightful, measurable learning experiences.
-                      </Text>
+  {m.desc}
+</Text>
+
                       <View style={styles.teamActions}>
                         <TouchableOpacity
                           onPress={() => Linking.openURL(`mailto:${m.email}`)}
@@ -368,13 +368,6 @@ export default function App() {
                 onPress={() => Linking.openURL("https://team1-mathproject.netlify.app/")}
               >
                 <Text style={styles.ctaBtnText}>Try the Demo Now</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.ctaBtnGhost}
-                activeOpacity={0.92}
-                onPress={() => scrollTo("problem")}
-              >
-                <Text style={styles.ctaGhostText}>Why We Built This</Text>
               </TouchableOpacity>
             </View>
           </View>
