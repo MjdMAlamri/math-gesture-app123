@@ -1,62 +1,89 @@
-// app/index.js
+// app/index.js (fixed for web deployment)
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useRef, useState } from "react";
 import {
+  Image,
+  Linking,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
-  View,
-  Image,
-  ScrollView,
   TouchableOpacity,
-  Linking,
+  useWindowDimensions,
+  View,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 
-const LOGO_URL =
-  "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/FullLogo.png"; // kept intentionally (unused)
-
+// ===== Theme =====
 const HEADER_HEIGHT = 72;
-const MAX_W = 1100;
+const MAX_W = 1200;
+const RADIUS = 20;
+const COLOR = {
+  bg: "#0a0d1f",
+  bgAlt: "rgba(255,255,255,0.04)",
+  card: "rgba(255,255,255,0.06)",
+  border: "rgba(255,255,255,0.10)",
+  text: "#ffffff",
+  sub: "#C9CFE8",
+  body: "#DDE2F1",
+  brand: "#7B2CFF",
+  brandDim: "rgba(123,44,255,0.22)",
+};
 
 export default function App() {
-  // ---- Anchors for smooth scroll ----
-  const scrollRef = useRef(null);
-  const [anchors, setAnchors] = useState({
-    problem: 0,
-    solution: 0,
-    team: 0,
-    demo: 0,
-  });
-  const [active, setActive] = useState("problem");
+  const { width, height } = useWindowDimensions();
+  const isMobile = width < 640;
 
-  const onLayout = (key) => (e) =>
-    setAnchors((p) => ({ ...p, [key]: e.nativeEvent.layout.y }));
+  const scrollRef = useRef(null);
+  const sectionRefs = useRef({});
+  const [active, setActive] = useState("hero");
 
   const scrollTo = (key) => {
-    const y = Math.max((anchors[key] || 0) - HEADER_HEIGHT - 8, 0);
-    scrollRef.current?.scrollTo?.({ y, animated: true });
+    setActive(key);
+    
+    if (key === "hero") {
+      scrollRef.current?.scrollTo?.({ y: 0, animated: true });
+      return;
+    }
+    
+    if (sectionRefs.current[key]) {
+      sectionRefs.current[key].measureLayout(
+        scrollRef.current,
+        (x, y) => {
+          scrollRef.current?.scrollTo?.({ 
+            y: Math.max(y - HEADER_HEIGHT - 8, 0), 
+            animated: true 
+          });
+        },
+        () => {}
+      );
+    }
   };
 
-  // Track active section while scrolling
   const onScroll = (e) => {
     const y = e.nativeEvent.contentOffset.y;
-    const pad = 200;
-    let current = "problem";
-    if (y >= (anchors.demo || 9e9) - pad) current = "demo";
-    else if (y >= (anchors.team || 9e9) - pad) current = "team";
-    else if (y >= (anchors.solution || 9e9) - pad) current = "solution";
-    else current = "problem";
+    const pad = 220;
+    let current = "hero";
+    
+    // Simple threshold-based detection
+    if (y >= height * 2.5) current = "demo";
+    else if (y >= height * 1.8) current = "team";
+    else if (y >= height * 0.9) current = "solution";
+    else if (y >= height * 0.3) current = "problem";
+    else current = "hero";
+    
     if (current !== active) setActive(current);
   };
 
-  // ---- Data ----
+  const SECTION_MIN = Math.max(height * 0.85, isMobile ? 560 : 640);
+
   const TEAM = [
     {
       first: "Besmelh",
       last: "Alshalaan",
-      avatar:
-        "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/Besmelh",
+      avatar: "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/Besmelh",
       linkedin: "https://www.linkedin.com/in/besmelh-alshaalan/",
       email: "besmelh.alshaalan@gmail.com",
+      desc: "Software developer passionate about creating interactive, visually engaging experiences across web, game, and XR platforms—blending technical skill with creative design to build intuitive, meaningful products."
     },
     {
       first: "Shaykha",
@@ -64,30 +91,31 @@ export default function App() {
       avatar: "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/We",
       linkedin: "https://www.linkedin.com/in/shaykha-almaani/",
       email: "shaykhah.abdullah.a@gmail.com",
+      desc: "Project coordinator ensuring seamless teamwork and high-impact outcomes."
     },
     {
       first: "Rasheed",
       last: "Alghamdi",
-      avatar:
-        "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/Rasheed",
+      avatar: "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/Rasheed",
       linkedin: "https://www.linkedin.com/in/rasheedmg/",
       email: "rasheedalghamdi1998@gmail.com",
+      desc: "Computer Science graduate from KFUPM with a 3.6/4 major GPA. Passionate about technology and Artificial Intelligence. Possessing a diverse skillset with a strong portfolio of projects including Unity, Python, and AI, I am eager to contribute my knowledge to a dynamic organization and grow as a professional. Seeking to make a meaningful impact in the field of computer science by joining a collaborative team to help me reach my potential. Fluent in Arabic, English, and in computers."
     },
     {
       first: "Fai",
       last: "Alradhi",
       avatar: "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/We",
-      linkedin:
-        "https://www.linkedin.com/in/fai-alradhi-caie™-080b66228/",
+      linkedin: "https://www.linkedin.com/in/fai-alradhi-caie™-080b66228/",
       email: "Faialradhi@gmail.com",
+      desc: "Passionate about creating inclusive tech and overcoming challenges."
     },
     {
       first: "Mohammad",
       last: "Alsarrah",
-      avatar:
-        "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/Mohammed",
+      avatar: "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/Mohammed",
       linkedin: "https://www.linkedin.com/in/mohammed-alsarrah/",
       email: "malsarrah0@gmail.com",
+      desc: "Industrial Engineering graduate and Certified Associate in Project Management (CAPM®️), also holding a Microsoft Azure Data Fundamentals certification. He is part of Accenture’s Graduate Development Program with a focus on Data & AI. His experience includes internships at PwC Middle East in Deals Strategy & Operations and at Muqassa (Securities Clearing Center Company, Tadawul Group), where he worked on strategic planning, financial analysis, and process improvement. He also applied AI/ML forecasting models in a graduation project with the Ministry of Health, combining engineering, data, and business insights."
     },
     {
       first: "Mjd",
@@ -95,216 +123,253 @@ export default function App() {
       avatar: "https://github.com/MjdMAlamri/Images/raw/refs/heads/main/We",
       linkedin: "https://www.linkedin.com/in/mjd-alamri-pnu/",
       email: "mjdmalamri@gmail.com",
+      desc: "Computer Science graduate with ITIL® certification and experience in data analytics, governance, AI applications, and IT operations. Hands-on expertise in incident management, root cause analysis (RCA), Exchange Admin Center, SQL, Power BI, and UI/UX. Recognized for problem-solving, cross-functional collaboration, and time management, with proven leadership skills and a continuous drive to learn and contribute."
     },
   ];
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#0b0d2b" }}>
-      {/* ===== Theme-matched Header ===== */}
-      <View style={styles.header}>
-        <Image
-          source={{
-            uri: "https://companieslogo.com/img/orig/ACN_BIG.D-871a76ce.png?t=1720244490",
-          }}
-          style={styles.logo}
-        />
-        <View style={styles.navWrap}>
-          <View style={styles.navPill}>
-            <NavItem
-              label="PROBLEM"
-              active={active === "problem"}
-              onPress={() => scrollTo("problem")}
+    <View style={{ flex: 1, backgroundColor: COLOR.bg }}>
+      {/* ===== Header ===== */}
+      <View style={styles.headerWrap}>
+        <LinearGradient
+          colors={["rgba(10,13,31,0.85)", "rgba(10,13,31,0.65)"]}
+          style={styles.header}
+        >
+          <TouchableOpacity onPress={() => scrollTo("hero")} activeOpacity={0.8}>
+            <Image
+              source={{
+                uri: "https://companieslogo.com/img/orig/ACN_BIG.D-871a76ce.png?t=1720244490",
+              }}
+              style={styles.logo}
             />
-            <NavItem
-              label="SOLUTION"
-              active={active === "solution"}
-              onPress={() => scrollTo("solution")}
-            />
-            <NavItem
-              label="TEAM"
-              active={active === "team"}
-              onPress={() => scrollTo("team")}
-            />
-            <NavItem
-              label="DEMO"
-              active={active === "demo"}
-              onPress={() => scrollTo("demo")}
-            />
+          </TouchableOpacity>
+
+          <View style={styles.navWrap}>
+            <View style={styles.navPill}>
+              {[
+                { label: "HOME", key: "hero" },
+                { label: "PROBLEM", key: "problem" },
+                { label: "SOLUTION", key: "solution" },
+                { label: "TEAM", key: "team" },
+                { label: "DEMO", key: "demo" },
+              ].map((i) => (
+                <TouchableOpacity
+                  key={i.key}
+                  onPress={() => scrollTo(i.key)}
+                  activeOpacity={0.9}
+                  style={[
+                    styles.pillItem,
+                    active === i.key && styles.pillItemActive,
+                  ]}
+                >
+                  <Text
+                    style={[styles.pillText, active === i.key && styles.pillTextActive]}
+                  >
+                    {i.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
-        </View>
+        </LinearGradient>
+        <View style={styles.headerHairline} />
       </View>
 
       <ScrollView
         ref={scrollRef}
         style={styles.page}
-        contentContainerStyle={{ paddingBottom: 48 }}
+        contentContainerStyle={{ paddingBottom: 64 }}
         scrollEventThrottle={16}
         onScroll={onScroll}
       >
         {/* ===== Hero ===== */}
-        <LinearGradient
-          colors={["#0B1440", "#0D246A"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.heroBand}
-        >
+        <View style={[styles.heroBand, { minHeight: SECTION_MIN }]}>
+          <Image
+            source={{
+              uri: "https://images.unsplash.com/photo-1758685734343-491353d96a81?q=80&w=2400&auto=format&fit=crop",
+            }}
+            style={StyleSheet.absoluteFill}
+            resizeMode="cover"
+            blurRadius={Platform.OS === 'web' ? 0 : undefined}
+          />
+          <LinearGradient
+            colors={["rgba(10,13,31,0.3)", "rgba(10,13,31,0.75)"]}
+            style={StyleSheet.absoluteFill}
+          />
           <View style={styles.heroRow}>
             <View style={styles.heroLeft}>
-              <Text style={styles.heroBrand}>EdVenture</Text>
-              <Text style={styles.heroTagline}>
+              <Text style={[styles.heroBrand, isMobile && { fontSize: 44 }]}>
+                EdVenture
+              </Text>
+              <Text
+                style={[
+                  styles.heroTagline,
+                  isMobile && { fontSize: 18, lineHeight: 26 },
+                ]}
+              >
                 Making education fun, engaging, and trackable
               </Text>
-                          <TouchableOpacity 
-            style={styles.ctaBtn} 
-            activeOpacity={0.92}
-            onPress={() => Linking.openURL("https://team1-mathproject.netlify.app/")}
-            >
-              <Text style={styles.ctaBtnText}>Try the Demo Now</Text>
-            </TouchableOpacity>
-            </View>
-            <Image
-              source={{
-                uri: "https://images.unsplash.com/photo-1758685734343-491353d96a81?q=80&w=3132&auto=format&fit=crop",
-              }}
-              style={styles.heroArt}
-            />
-          </View>
 
-          <View style={styles.featureStrip}>
-            <Feature
-              title="Fun"
-              text="Math becomes play through interactive games powered by gesture and hand-drawing recognition."
-              divider
-            />
-            <Feature
-              title="Engaging"
-              text="Learners interact by drawing and gesturing, making abstract math concepts easy to grasp."
-              divider
-            />
-            <Feature
-              title="Trackable"
-              text="Teachers track performance in real time, while students review past equations."
-            />
+              <View style={styles.ctaRow}>
+                <TouchableOpacity
+                  style={[styles.ctaBtn, isMobile && { minWidth: 200 }]}
+                  activeOpacity={0.92}
+                  onPress={() => Linking.openURL("https://team1-mathproject.netlify.app/")}
+                >
+                  <Text style={styles.ctaBtnText}>Try the Demo Now</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-        </LinearGradient>
+        </View>
 
         {/* ===== Problem ===== */}
-        <View onLayout={onLayout("problem")} />
-        <View style={[styles.band, styles.bandAlt]}>
-          <View style={styles.row}>
-            <View style={styles.colText}>
-              <Text style={styles.h2}>Problem Statement</Text>
-              <Text style={styles.body}>
-                Traditional math learning relies heavily on textbooks and
-                lectures, making the subject feel abstract and repetitive. This
-                often leads to low engagement and reduced motivation among
-                students. Teachers also struggle to track individual progress.
-              </Text>
-            </View>
-            <Image
-              source={{
-                uri: "https://images.pexels.com/photos/249360/pexels-photo-249360.jpeg",
-              }}
-              style={styles.bigImage}
-            />
-          </View>
-        </View>
-
-        {/* ===== Solution (4-image grid) ===== */}
-        <View onLayout={onLayout("solution")} />
-        <View style={styles.band}>
-          <View style={styles.row}>
-            <View style={styles.grid}>
-              <GridImg uri="https://images.pexels.com/photos/4144091/pexels-photo-4144091.jpeg" />
-              <GridImg uri="https://images.pexels.com/photos/5905701/pexels-photo-5905701.jpeg" />
-              <GridImg uri="https://images.pexels.com/photos/5905922/pexels-photo-5905922.jpeg" />
-              <GridImg uri="https://images.pexels.com/photos/5905705/pexels-photo-5905705.jpeg" />
-            </View>
-
-            <View style={styles.colText}>
-              <Text style={styles.h2}>Solution</Text>
-              <Text style={styles.body}>
-                With EdVenture Math, learning becomes fun, engaging,
-                personalized, and trackable. Interactive games transform
-                practice into play, while real-time feedback keeps students
-                motivated. Lessons adapt to each student’s level, and progress
-                is easy to monitor and review—making every step visible and
-                meaningful.
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* ===== Team (horizontal cards, 3 per row) ===== */}
-        <View onLayout={onLayout("team")} />
-        <LinearGradient colors={["#1a1f4a", "#0b0d2b"]} style={styles.teamBand}>
-          <Text style={[styles.h2, { textAlign: "center", marginBottom: 22 }]}>
-            Team Members
-          </Text>
-
-          <View style={styles.teamRowWrap}>
-            {TEAM.map((m, i) => (
-              <View key={i} style={styles.teamCard}>
-                <Image source={{ uri: m.avatar }} style={styles.teamAvatar} />
-                <View style={styles.teamInfo}>
-                  <Text style={styles.teamOverline}>team member</Text>
-                  <Text style={styles.teamName}>
-                    {m.first} {m.last}
-                  </Text>
-                  <Text style={styles.teamCopy} numberOfLines={3}>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                    Proin posuere, augue in efficitur luctus, urna arcu
-                    porttitor diam, non elementum nibh arcu in augue.
-                  </Text>
-                  <View style={styles.teamActions}>
-                    <TouchableOpacity
-                      onPress={() => Linking.openURL(`mailto:${m.email}`)}
-                      style={[styles.chip, styles.chipGhost]}
-                      activeOpacity={0.85}
-                    >
-                      <Text style={styles.chipGhostText}>Email</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => Linking.openURL(m.linkedin)}
-                      style={[styles.chip, styles.chipPrimary]}
-                      activeOpacity={0.9}
-                    >
-                      <Text style={styles.chipPrimaryText}>LinkedIn</Text>
-                    </TouchableOpacity>
-                  </View>
+        <View 
+          ref={(ref) => { sectionRefs.current.problem = ref; }}
+          style={[styles.band, styles.bandAlt, { minHeight: SECTION_MIN }]}
+        >
+          <View style={styles.container}>
+            <View style={[styles.row, isMobile && styles.rowMobile]}>
+              <View style={[styles.colText, isMobile && styles.colTextMobile]}>
+                <Text style={[styles.h2, isMobile && { fontSize: 28 }]}>
+                The Struggle with Traditional Learning
+                </Text>
+                <Text style={[styles.body, isMobile && { fontSize: 16 }]}>
+                  Traditional math learning relies heavily on textbooks and lectures, making the
+                  subject feel abstract and repetitive. This often leads to low engagement and
+                  reduced motivation among students. Teachers also struggle to track individual
+                  progress.
+                </Text>
+              </View>
+              <View style={[styles.colImage, isMobile && styles.colImageMobile]}>
+                <View style={styles.figureCard}>
+                  <Image
+                    source={{ uri: "https://images.pexels.com/photos/249360/pexels-photo-249360.jpeg" }}
+                    style={styles.figureImg}
+                  />
                 </View>
               </View>
-            ))}
+            </View>
           </View>
-        </LinearGradient>
+        </View>
+
+        {/* ===== Solution ===== */}
+        <View 
+          ref={(ref) => { sectionRefs.current.solution = ref; }}
+          style={[styles.band, { minHeight: SECTION_MIN }]}
+        >
+          <View style={styles.container}>
+            <View style={styles.row}>
+              <View style={{ width: '100%' }}>
+                <Text style={[styles.h2, { marginBottom: 24 }]}>The EdVenture Way</Text>
+
+                <View style={[styles.solutionSquares, isMobile && styles.solutionSquaresMobile]}>
+                  <SquareFeature
+                    title="Fun"
+                    text="Interactive math games powered by gesture and hand-draw recognition."
+                    bg="https://images.pexels.com/photos/1019470/abacus-mathematics-addition-subtraction-1019470.jpeg"
+                  />
+                  <SquareFeature
+                    title="Engaging"
+                    text="Students draw and gesture to grasp abstract concepts quickly."
+                    bg="https://images.pexels.com/photos/7692467/pexels-photo-7692467.jpeg"
+                  />
+                  <SquareFeature
+                    title="Trackable"
+                    text="Real-time analytics for teachers; history for students."
+                    bg="https://images.pexels.com/photos/106344/pexels-photo-106344.jpeg"
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* ===== Team ===== */}
+        <View 
+          ref={(ref) => { sectionRefs.current.team = ref; }}
+          style={{ minHeight: SECTION_MIN }}
+        >
+          <LinearGradient 
+            colors={["#12183d", COLOR.bg]} 
+            style={styles.teamBand}
+          >
+            <View style={styles.container}>
+              <Text style={[styles.h2, { marginBottom: 24, fontSize: isMobile ? 28 : 32 }]}>
+                Team Members
+              </Text>
+
+              <View style={[styles.teamRowWrap, isMobile && styles.teamRowWrapMobile]}>
+                {TEAM.map((m, i) => (
+                  <View key={i} style={[styles.teamCard, isMobile && styles.teamCardMobile]}>
+                    <LinearGradient
+                      colors={[COLOR.brand, "rgba(123,44,255,0.18)"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.avatarFrame}
+                    >
+                      <Image source={{ uri: m.avatar }} style={styles.teamAvatar} />
+                    </LinearGradient>
+
+                    <View style={styles.teamInfo}>
+                      <Text style={styles.teamOverline}>team member</Text>
+                      <Text style={styles.teamName}>
+                        {m.first} {m.last}
+                      </Text>
+                      <Text style={styles.teamCopy} numberOfLines={3}>
+  {m.desc}
+</Text>
+
+                      <View style={styles.teamActions}>
+                        <TouchableOpacity
+                          onPress={() => Linking.openURL(`mailto:${m.email}`)}
+                          style={[styles.chip, styles.chipGhost]}
+                          activeOpacity={0.85}
+                        >
+                          <Text style={styles.chipGhostText}>Email</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() => Linking.openURL(m.linkedin)}
+                          style={[styles.chip, styles.chipPrimary]}
+                          activeOpacity={0.9}
+                        >
+                          <Text style={styles.chipPrimaryText}>LinkedIn</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </LinearGradient>
+        </View>
 
         {/* ===== CTA ===== */}
-        <View onLayout={onLayout("demo")} />
-        <View style={styles.ctaWrap}>
+        <View 
+          ref={(ref) => { sectionRefs.current.demo = ref; }}
+          style={[styles.ctaWrap, { minHeight: Math.max(SECTION_MIN * 0.7, 420) }]}
+        >
           <View style={styles.ctaCard}>
             <Image
-              source={{
-                uri: "https://images.unsplash.com/photo-1557682250-33bd709cbe85?q=80&w=1600&auto=format&fit=crop",
-              }}
+              source={{ uri: "https://images.unsplash.com/photo-1557682250-33bd709cbe85?q=80&w=1600&auto=format&fit=crop" }}
               style={styles.ctaBg}
-              blurRadius={30}
+              blurRadius={Platform.OS === 'web' ? 0 : 30}
             />
-            <LinearGradient
-              colors={["rgba(0,0,0,0.35)", "rgba(0,0,0,0.55)"]}
-              style={styles.ctaShade}
+            <LinearGradient 
+              colors={["rgba(0,0,0,0.35)", "rgba(0,0,0,0.55)"]} 
+              style={styles.ctaShade} 
             />
-            <Text style={styles.ctaTitle}>
-              Experience It Yourself – Try the Demo
-            </Text>
+            <Text style={styles.ctaTitle}>Experience It Yourself — Try the Demo</Text>
 
-            {/* New: CTA button uses same header pill theme */}
-            <TouchableOpacity 
-            style={styles.ctaBtn} 
-            activeOpacity={0.92}
-            onPress={() => Linking.openURL("https://team1-mathproject.netlify.app/")}
-            >
-              <Text style={styles.ctaBtnText}>Try the Demo Now</Text>
-            </TouchableOpacity>
+            <View style={styles.ctaRow}>
+              <TouchableOpacity
+                style={styles.ctaBtn}
+                activeOpacity={0.92}
+                onPress={() => Linking.openURL("https://team1-mathproject.netlify.app/")}
+              >
+                <Text style={styles.ctaBtnText}>Try the Demo Now</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -312,199 +377,267 @@ export default function App() {
   );
 }
 
-/* ---------- header nav item ---------- */
-const NavItem = ({ label, onPress, active }) => (
-  <TouchableOpacity
-    onPress={onPress}
-    activeOpacity={0.9}
-    style={[styles.pillItem, active && styles.pillItemActive]}
-  >
-    <Text style={[styles.pillText, active && styles.pillTextActive]}>
-      {label}
-    </Text>
-  </TouchableOpacity>
-);
-
-/* ---------- small helpers ---------- */
-const Feature = ({ title, text, divider }) => (
-  <View style={[styles.featureItem, divider && styles.featureDivider]}>
-    <Text style={styles.featureTitle}>{title}</Text>
-    <Text style={styles.featureText}>{text}</Text>
+/* ---------- helpers ---------- */
+const SquareFeature = ({ title, text, bg }) => (
+  <View style={styles.squareCard}>
+    <Image
+      source={{ uri: bg }}
+      style={[StyleSheet.absoluteFill, { opacity: 0.15 }]}
+      resizeMode="cover"
+    />
+    <LinearGradient 
+      colors={["rgba(0,0,0,0.40)", "rgba(0,0,0,0.60)"]} 
+      style={styles.squareInner}
+    >
+      <Text style={styles.squareTitle}>{title}</Text>
+      <Text style={styles.squareText}>{text}</Text>
+    </LinearGradient>
   </View>
-);
-
-const GridImg = ({ uri }) => (
-  <Image source={{ uri }} style={styles.gridImg} resizeMode="cover" />
 );
 
 /* =================== styles =================== */
 const styles = StyleSheet.create({
   page: { flex: 1 },
 
-  /* Theme-matched header */
+  container: {
+    maxWidth: MAX_W,
+    width: '100%',
+    alignSelf: 'center',
+    paddingHorizontal: 24,
+  },
+  containerMobile: {
+    paddingHorizontal: 20,
+  },
+
+  /* Header */
+  headerWrap: {
+    position: "relative",
+    zIndex: 20,
+  },
   header: {
     height: HEADER_HEIGHT,
     paddingHorizontal: 16,
-    backgroundColor: "#0b0d2b",
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.06)",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  headerHairline: {
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.06)",
   },
   logo: { width: 128, height: 44, resizeMode: "contain" },
   navWrap: { flexDirection: "row", alignItems: "center" },
   navPill: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.04)",
+    backgroundColor: COLOR.card,
     borderRadius: 999,
     paddingVertical: 6,
     paddingHorizontal: 6,
     gap: 6,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: COLOR.border,
   },
   pillItem: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderRadius: 999,
   },
   pillItemActive: {
-    backgroundColor: "rgba(123,44,255,0.18)",
+    backgroundColor: COLOR.brandDim,
     borderWidth: 1,
-    borderColor: "#7B2CFF",
+    borderColor: COLOR.brand,
   },
   pillText: {
     color: "#C9CDE6",
-    fontSize: 13.5,
+    fontSize: 14,
     fontWeight: "800",
     letterSpacing: 0.5,
   },
-  pillTextActive: { color: "#FFFFFF" },
+  pillTextActive: { color: COLOR.text },
 
-  /* Hero band */
-  heroBand: { paddingBottom: 28 },
+  /* Hero */
+  heroBand: { 
+    paddingBottom: 32, 
+    paddingTop: 12,
+    position: 'relative',
+  },
   heroRow: {
     maxWidth: MAX_W,
     alignSelf: "center",
     width: "100%",
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     gap: 24,
     paddingHorizontal: 24,
-    paddingTop: 10,
+    paddingTop: 22,
+    paddingBottom: 18,
+    flex: 1,
   },
-  heroLeft: { flex: 1, alignItems: "flex-start" },
+  heroLeft: {
+    flex: 1,
+    alignItems: "flex-start",
+    justifyContent: "center",
+  },
   heroBrand: {
-    color: "#FFFFFF",
-    fontSize: 48,
-    fontWeight: "800",
+    color: COLOR.text,
+    fontSize: 56,
+    fontWeight: "900",
     letterSpacing: 0.5,
     marginBottom: 10,
   },
-  heroTagline: { color: "#E6E8F2", fontSize: 18, lineHeight: 26 },
-  heroArt: {
-    width: 420,
-    height: 260,
-    borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.06)",
+  heroTagline: {
+    color: "#E6E8F2",
+    fontSize: 20,
+    lineHeight: 28,
+    marginBottom: 18,
+    maxWidth: 760,
   },
-
-  /* Feature strip */
-  featureStrip: {
-    maxWidth: MAX_W,
-    alignSelf: "center",
-    width: "100%",
-    marginTop: 24,
-    padding: 18,
-    borderRadius: 28,
+  ctaRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    backgroundColor: "rgba(255,255,255,0.06)",
-  },
-  featureItem: { flex: 1, paddingHorizontal: 14, alignItems: "center" },
-  featureDivider: {
-    borderRightWidth: 1,
-    borderRightColor: "rgba(255,255,255,0.12)",
-  },
-  featureTitle: {
-    color: "#FFFFFF",
-    fontWeight: "800",
-    fontSize: 18,
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  featureText: {
-    color: "#D8DBEA",
-    fontSize: 13.5,
-    lineHeight: 20,
-    textAlign: "center",
+    gap: 12,
+    flexWrap: "wrap",
   },
 
   /* Bands */
-  band: { paddingHorizontal: 24, paddingVertical: 56 },
-  bandAlt: { backgroundColor: "rgba(255,255,255,0.02)" },
+  band: {
+    paddingVertical: 72,
+    justifyContent: "center",
+  },
+  bandAlt: { backgroundColor: COLOR.bgAlt },
 
   row: {
-    maxWidth: MAX_W,
-    alignSelf: "center",
-    width: "100%",
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 32,
+    alignItems: 'center',
+    gap: 36,
+    width: '100%',
   },
-  colText: { flexBasis: "50%" },
-  h2: { color: "#fff", fontSize: 26, fontWeight: "800", marginBottom: 14 },
-  body: { color: "#DDE2F1", fontSize: 16, lineHeight: 26 },
+  rowMobile: {
+    flexDirection: 'column',
+    gap: 24,
+  },
+  colText: { 
+    width: '50%',
+  },
+  colTextMobile: {
+    width: '100%',
+  },
+  colImage: {
+    width: '42%',
+  },
+  colImageMobile: {
+    width: '100%',
+  },
+  h2: { 
+    color: COLOR.text, 
+    fontSize: 32, 
+    fontWeight: "900", 
+    marginBottom: 16 
+  },
+  body: { 
+    color: COLOR.body, 
+    fontSize: 18, 
+    lineHeight: 28 
+  },
 
-  bigImage: {
-    flexBasis: "40%",
-    height: 220,
-    borderRadius: 16,
-    backgroundColor: "#101632",
+  figureCard: {
+    width: '100%',
+    backgroundColor: COLOR.card,
+    borderRadius: RADIUS,
+    borderWidth: 1,
+    borderColor: COLOR.border,
+    overflow: "hidden",
   },
-
-  /* Solution grid */
-  grid: {
-    flexBasis: "50%",
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
+  figureCardMobile: {
+    width: '100%',
   },
-  gridImg: {
-    width: "48%",
-    height: 120,
-    borderRadius: 14,
-    backgroundColor: "#101632",
-  },
-
-  /* Team band (card layout) */
-  teamBand: { paddingVertical: 32, paddingHorizontal: 20 },
-  teamRowWrap: {
-    maxWidth: 1200,
-    alignSelf: "center",
+  figureImg: {
     width: "100%",
+    height: 300,
+  },
+
+  /* Solution squares */
+  solutionSquares: {
+    flexDirection: "row",
+    gap: 16,
+    justifyContent: "space-between",
+  },
+  solutionSquaresMobile: {
+    flexDirection: "column",
+  },
+  squareCard: {
+    flex: 1,
+    borderRadius: RADIUS,
+    overflow: "hidden",
+    minHeight: 220,
+    borderWidth: 1,
+    borderColor: COLOR.border,
+    backgroundColor: COLOR.card,
+  },
+  squareInner: {
+    flex: 1,
+    borderRadius: RADIUS,
+    padding: 20,
+    justifyContent: "space-between",
+  },
+  squareTitle: {
+    color: COLOR.text,
+    fontSize: 20,
+    fontWeight: "800",
+    marginBottom: 8,
+  },
+  squareText: {
+    color: "#D8DBEA",
+    fontSize: 14,
+    lineHeight: 20,
+  },
+
+  /* Team */
+  teamBand: { 
+    paddingVertical: 60, 
+    paddingHorizontal: 20 
+  },
+  teamRowWrap: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
     gap: 24,
   },
+  teamRowWrapMobile: {
+    justifyContent: 'center',
+  },
   teamCard: {
-    width: "32%",
-    minWidth: 320,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    borderRadius: 22,
+    width: 320,
+    backgroundColor: COLOR.card,
+    borderRadius: RADIUS + 2,
     padding: 16,
     flexDirection: "row",
     alignItems: "center",
-    gap: 14,
+    gap: 16,
+    borderWidth: 1,
+    borderColor: COLOR.border,
+  },
+  teamCardMobile: {
+    width: '100%',
+  },
+  avatarFrame: {
+    width: 80,
+    height: 130,
+    borderRadius: 18,
+    padding: 2,
+    shadowColor: COLOR.brand,
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 0 },
   },
   teamAvatar: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
+    flex: 1,
+    borderRadius: 16,
     backgroundColor: "#101632",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.25)",
   },
   teamInfo: { flex: 1, paddingLeft: 2 },
   teamOverline: {
@@ -514,38 +647,87 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: 2,
   },
-  teamName: { color: "#fff", fontSize: 18, fontWeight: "800", marginBottom: 6 },
-  teamCopy: { color: "#DDE2F1", fontSize: 13.5, lineHeight: 20 },
-  teamActions: { flexDirection: "row", gap: 10, marginTop: 12 },
-  chip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999 },
+  teamName: { 
+    color: COLOR.text, 
+    fontSize: 19, 
+    fontWeight: "800", 
+    marginBottom: 6 
+  },
+  teamCopy: { 
+    color: COLOR.body, 
+    fontSize: 13.5, 
+    lineHeight: 20 
+  },
+  teamActions: { 
+    flexDirection: "row", 
+    gap: 10, 
+    marginTop: 12 
+  },
+  chip: { 
+    paddingVertical: 9, 
+    paddingHorizontal: 14, 
+    borderRadius: 999 
+  },
   chipGhost: {
     backgroundColor: "transparent",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.25)",
   },
-  chipGhostText: { color: "#E6E8F2", fontSize: 13, fontWeight: "700" },
+  chipGhostText: { 
+    color: "#E6E8F2", 
+    fontSize: 13, 
+    fontWeight: "700" 
+  },
   chipPrimary: { backgroundColor: "#0a66c2" },
-  chipPrimaryText: { color: "#fff", fontSize: 13, fontWeight: "700" },
+  chipPrimaryText: { 
+    color: COLOR.text, 
+    fontSize: 13, 
+    fontWeight: "700" 
+  },
 
   /* CTA */
-  ctaWrap: { paddingHorizontal: 20, paddingVertical: 28 },
+  ctaWrap: { 
+    paddingHorizontal: 20, 
+    paddingVertical: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   ctaCard: {
-    maxWidth: 1200,
-    alignSelf: "center",
+    maxWidth: MAX_W,
     width: "100%",
     backgroundColor: "#0E1016",
-    borderRadius: 28,
-    paddingVertical: 42,
+    borderRadius: RADIUS + 8,
+    paddingVertical: 48,
     paddingHorizontal: 20,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
+    borderWidth: 1,
+    borderColor: COLOR.border,
   },
-  ctaBg: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0, opacity: 0.9 },
-  ctaShade: { position: "absolute", left: 0, right: 0, top: 0, bottom: 0 },
-  ctaTitle: { color: "#FFFFFF", fontSize: 28, fontWeight: "800", textAlign: "center", marginBottom: 22 },
+  ctaBg: { 
+    position: "absolute", 
+    left: 0, 
+    right: 0, 
+    top: 0, 
+    bottom: 0, 
+    opacity: 0.9 
+  },
+  ctaShade: { 
+    position: "absolute", 
+    left: 0, 
+    right: 0, 
+    top: 0, 
+    bottom: 0 
+  },
+  ctaTitle: { 
+    color: COLOR.text, 
+    fontSize: 30, 
+    fontWeight: "900", 
+    textAlign: "center", 
+    marginBottom: 22 
+  },
 
-  // NEW: CTA button with the same header pill theme
   ctaBtn: {
     paddingVertical: 12,
     paddingHorizontal: 28,
@@ -553,13 +735,31 @@ const styles = StyleSheet.create({
     minWidth: 230,
     alignItems: "center",
     borderWidth: 1.25,
-    borderColor: "#7B2CFF",
-    backgroundColor: "rgba(123,44,255,0.18)",
-    shadowColor: "#7B2CFF",
+    borderColor: COLOR.brand,
+    backgroundColor: COLOR.brandDim,
+    shadowColor: COLOR.brand,
     shadowOpacity: 0.35,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 0 },
-    marginTop: "30px"
   },
-  ctaBtnText: { color: "#FFFFFF", fontSize: 16, fontWeight: "800" },
+  ctaBtnText: { 
+    color: COLOR.text, 
+    fontSize: 16, 
+    fontWeight: "800" 
+  },
+  ctaBtnGhost: {
+    paddingVertical: 12,
+    paddingHorizontal: 22,
+    borderRadius: 999,
+    minWidth: 180,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: COLOR.border,
+    backgroundColor: "transparent",
+  },
+  ctaGhostText: { 
+    color: "#E6E8F2", 
+    fontSize: 15, 
+    fontWeight: "800" 
+  },
 });
